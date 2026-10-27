@@ -3,4 +3,4 @@
 .env
 __pycache__/
 .ipynb_checkpoints/
-api/opensky/notebooks/output/
+notebooks/opensky/notebooks/output/
