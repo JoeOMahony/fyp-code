@@ -9,6 +9,10 @@ from urllib.error import HTTPError, URLError
 
 import boto3
 
+# --------------------------------------------------------------------
+# ----- DEPRECATED ON 2026-11-02 // SEE flightaware_lambda-v2.py -----
+# --------------------------------------------------------------------
+
 s3 = boto3.client('s3')
 logger = logging.getLogger()
 
