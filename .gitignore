@@ -4,3 +4,11 @@
 __pycache__/
 .ipynb_checkpoints/
 notebooks/opensky/notebooks/output/
+
+# Duck DB
+.duckdb/
+*.duckdb_secret
+*.duckdb
+*.duckdb.wal
+*.db
+*.db.wal
