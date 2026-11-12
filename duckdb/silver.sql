@@ -1,4 +1,6 @@
 -- DuckDB silver layer
+-- To run build/rebuild silver, run the following command from /duckdb/, duckdb aeroq.duckdb -f silver.sql 
+-- To access the silver layer, run the following command from /duckdb/, duckdb aeroq.duckdb
 
 SET preserve_insertion_order=false; -- Required to avoid OOM errors on my laptop
 
@@ -28,3 +30,18 @@ columns = {
 });
 
 -- To test: duckdb aeroq.duckdb --> SELECT icaoId, count(*) AS 'METAR Entries' FROM metar GROUP BY ALL;
+
+CREATE OR REPLACE TABLE taf AS
+SELECT DISTINCT ON (icaoId, issueTime) *
+FROM read_json('s3://aeroq-data-lake/bronze/awc/taf/*/*/*.json*', 
+format = 'array', 
+columns = {
+    icaoId: 'VARCHAR', 
+    issueTime: 'TIMESTAMPTZ',
+    validTimeFrom: 'BIGINT',
+    validTimeTo: 'BIGINT',
+    rawTAF: 'VARCHAR',
+    fcsts: 'JSON'
+});
+
+-- To test: duckdb aeroq.duckdb --> SELECT icaoId, count(*) AS 'TAF Entries' FROM taf GROUP BY ALL;
