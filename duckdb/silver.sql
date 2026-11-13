@@ -4,6 +4,9 @@
 
 SET preserve_insertion_order = false; -- Required to avoid OOM errors on my laptop
 
+-- This is to get around known DuckDB issue on Mac: "Not implemented Error: GetProgress is not implemented for this file handle"
+SET enable_progress_bar = false;  
+
 CREATE OR REPLACE TABLE metar AS
 SELECT DISTINCT ON (icaoId, obsTime) * -- Take all columns, dedupe on icao + obsTime
 FROM read_json(
