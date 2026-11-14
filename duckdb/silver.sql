@@ -101,3 +101,38 @@ FROM (
     )
 );
 -- To test: duckdb aeroq.duckdb --> SELECT origin.code, count(*) AS 'Departure entries' FROM departures GROUP BY ALL;
+
+
+-- Each S3 object (S3_obj) holds an AeroAPI response as an object with a single desired k-v pair of: "arrivals": [ {flight01}, {flight02}, ... ]
+-- The max number of flights in each S3_obj is 150, so I've included this as the figure in brackets as it aided me in planning
+CREATE OR REPLACE TABLE arrivals AS
+SELECT DISTINCT ON (f.fa_flight_id) f.* -- Split every flight row into one column per field, only keep one row per fa_flight_id [150 rows, 16 columns]
+FROM (
+    SELECT unnest(arrivals) AS f -- Unnest the S3_obj row into one row per flight [150 rows, 1 column]
+    FROM read_json(
+        's3://aeroq-data-lake/bronze/flightaware/arrivals/*/*/*.json*',
+        columns = {
+            arrivals: -- Read each S3_obj into one row called arrivals (containing all flights) [1 row, 1 column, 150 flights]
+                'STRUCT(
+                    fa_flight_id VARCHAR,
+                    ident VARCHAR,
+                    operator_icao VARCHAR,
+                    aircraft_type VARCHAR,
+                    origin STRUCT(code VARCHAR),
+                    destination STRUCT(code VARCHAR),
+                    scheduled_out TIMESTAMPTZ,
+                    estimated_out TIMESTAMPTZ,
+                    actual_out TIMESTAMPTZ,
+                    scheduled_in TIMESTAMPTZ,
+                    actual_in TIMESTAMPTZ,
+                    departure_delay INTEGER,
+                    arrival_delay INTEGER,
+                    cancelled BOOLEAN,
+                    diverted BOOLEAN,
+                    status VARCHAR
+                )[]'
+        }
+    )
+);
+-- To test: duckdb aeroq.duckdb --> SELECT destination.code, count(*) AS 'Arrival entries' FROM arrivals GROUP BY ALL;
+
